@@ -1,0 +1,142 @@
+/* src/App.css - minimal polished styles */
+body {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  margin: 0;
+  background: #f7fafc;
+  color: #111827;
+}
+
+.app-root {
+  max-width: 1100px;
+  margin: 20px auto;
+  padding: 12px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.app-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 12px;
+}
+
+.panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(12, 17, 23, 0.06);
+}
+
+.upload-panel {
+  grid-column: 1 / span 1;
+}
+
+.history-panel {
+  grid-column: 2 / span 1;
+}
+
+.summary-panel {
+  grid-column: 1 / span 1;
+  margin-top: 12px;
+}
+
+.table-panel {
+  grid-column: 1 / span 2;
+  margin-top: 12px;
+}
+
+.auth-card {
+  width: 360px;
+  margin: 30px auto;
+  padding: 18px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(12,17,23,0.06);
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 8px 10px;
+  margin: 8px 0;
+  border: 1px solid #e6e9ef;
+  border-radius: 6px;
+}
+
+.auth-card button {
+  padding: 8px 12px;
+  margin-top: 8px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.auth-toggle button {
+  background: transparent;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.message { margin-top: 8px; color: #e11d48; }
+
+.history-item {
+  border-bottom: 1px dashed #e6e9ef;
+  padding: 8px 0;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-actions button {
+  margin-left: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #e6e9ef;
+  background: white;
+  cursor: pointer;
+}
+
+.charts-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.chart-card {
+  width: 50%;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #eef2f6;
+  text-align: left;
+}
+
+.small-pre {
+  background: #f3f4f6;
+  padding: 8px;
+  border-radius: 6px;
+  display: inline-block;
+}

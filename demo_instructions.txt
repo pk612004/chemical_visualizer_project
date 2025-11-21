@@ -1,0 +1,8 @@
+Demo instructions (2-3 minutes):
+1. Start backend: python manage.py runserver 8000
+2. Start frontend-web: npm start (React)
+3. Start frontend-desktop: python app.py (PyQt5)
+4. On web UI, upload sample_equipment_data.csv and show charts + table.
+5. On desktop UI, upload same CSV, show charts and export PDF.
+6. Show 'History' listing last 5 uploads from backend and open one summary.
+7. Click 'Generate PDF' from either UI and download/open it to show report content.

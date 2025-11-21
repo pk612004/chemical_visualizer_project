@@ -1,0 +1,9 @@
+Django==4.2
+djangorestframework==3.16.1
+
+pandas==2.2.2
+reportlab==4.0.0
+python-magic==0.4.27; platform_system!='Windows'
+python-magic-bin==0.4.14; platform_system=='Windows'
+
+django-cors-headers==3.14.0

@@ -1,0 +1,23 @@
+
+# Python virtual environments
+.venv/
+backend/.venv/
+frontend-desktop/.venv-desktop/
+
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Database
+db.sqlite3
+
+# Media uploads
+backend/media/
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/

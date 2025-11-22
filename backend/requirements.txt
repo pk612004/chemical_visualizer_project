@@ -1,9 +1,15 @@
 Django==4.2
 djangorestframework==3.16.1
+djangocorsheaders==3.14.0
+djangorestframework-authtoken==1.0.0
 
 pandas==2.2.2
 reportlab==4.0.0
-python-magic==0.4.27; platform_system!='Windows'
-python-magic-bin==0.4.14; platform_system=='Windows'
 
-django-cors-headers==3.14.0
+python-magic==0.4.27
+
+gunicorn==20.1.0
+whitenoise==6.5.0
+ python-dotenv==1.0.0
+dj-database-url==1.0.0
+psycopg2-binary==2.9.7

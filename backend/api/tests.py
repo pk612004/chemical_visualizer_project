@@ -14,13 +14,13 @@ Pump B,Pump,120.0,2.8,80.1
 @override_settings(MEDIA_ROOT=settings.BASE_DIR / 'test_media')
 class APITest(TestCase):
     def setUp(self):
-        # create user and token
+        
         self.user = User.objects.create_user('tester', password='pass123')
         self.token, _ = Token.objects.get_or_create(user=self.user)
         self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
     def tearDown(self):
-        # cleanup test media dir
+      
         import shutil
         try:
             shutil.rmtree(str(settings.BASE_DIR / 'test_media'))
@@ -33,7 +33,7 @@ class APITest(TestCase):
         self.assertIn('summary', data)
         self.assertEqual(data['summary']['total'], 2)
     def test_history(self):
-        # upload twice
+    
         for i in range(2):
             self.client.post('/api/upload/', {'file': io.BytesIO(SAMPLE_CSV.encode('utf-8')), 'name': f'test{i}.csv'}, format='multipart')
         res = self.client.get('/api/history/')

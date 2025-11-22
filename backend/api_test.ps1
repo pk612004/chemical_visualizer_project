@@ -1,5 +1,4 @@
-# api_test.ps1 - smoke test for Chemical Equipment Parameter Visualizer
-# Usage: runserver must be running in another terminal. Then run: .\api_test.ps1
+
 
 $base = 'http://127.0.0.1:8000'
 $username = 'demo'

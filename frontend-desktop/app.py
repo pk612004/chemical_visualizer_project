@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """
 Chemical Equipment Visualizer - PyQt5 desktop frontend
 Features:
@@ -28,13 +28,11 @@ from PyQt5.QtCore import Qt, QSize
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-# === CONFIG ===
 API_BASE = os.environ.get('API_BASE', 'http://127.0.0.1:8000/api/')
 TOKEN_STORE = os.path.expanduser('~/.chemical_visualizer_token')
-REQUEST_TIMEOUT = 10  # seconds
+REQUEST_TIMEOUT = 10 
 
 
-# === Helper functions ===
 def save_token_to_disk(token):
     try:
         with open(TOKEN_STORE, 'w') as f:
@@ -60,7 +58,6 @@ def safe_json(resp):
         return None
 
 
-# === Main Window ===
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
@@ -69,13 +66,12 @@ class MainWindow(QWidget):
 
         self.token = load_token_from_disk()
         self.filepath = None
-        self.history = []  # list of dicts
+        self.history = []  
 
         root = QVBoxLayout()
         header = QLabel('<h2>Chemical Equipment Visualizer</h2>')
         root.addWidget(header)
 
-        # Top: auth row
         auth_row = QHBoxLayout()
         self.username = QLineEdit(); self.username.setPlaceholderText('username')
         self.password = QLineEdit(); self.password.setEchoMode(QLineEdit.Password); self.password.setPlaceholderText('password')
@@ -90,14 +86,11 @@ class MainWindow(QWidget):
         auth_row.addWidget(self.btn_logout)
         root.addLayout(auth_row)
 
-        # Splitter: left upload + summary + table, right history
         splitter = QSplitter(Qt.Horizontal)
 
-        # left pane (vertical)
         left_frame = QFrame()
         left_layout = QVBoxLayout()
 
-        # upload row
         upload_row = QHBoxLayout()
         self.btn_choose = QPushButton('Choose CSV'); self.btn_choose.clicked.connect(self.choose)
         self.lbl_chosen = QLabel('No file chosen')
@@ -107,19 +100,16 @@ class MainWindow(QWidget):
         upload_row.addWidget(self.btn_upload)
         left_layout.addLayout(upload_row)
 
-        # summary area (text + charts)
         summary_label = QLabel('<b>Summary</b>')
         left_layout.addWidget(summary_label)
         self.summary_text = QTextEdit(); self.summary_text.setReadOnly(True); self.summary_text.setMaximumHeight(120)
         left_layout.addWidget(self.summary_text)
 
-        # charts area (two subplots)
         self.figure = Figure(figsize=(6, 3))
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         left_layout.addWidget(self.canvas, 1)
 
-        # CSV table
         table_label = QLabel('<b>CSV Table</b>')
         left_layout.addWidget(table_label)
         self.table = QTableWidget()
@@ -128,7 +118,6 @@ class MainWindow(QWidget):
         left_frame.setLayout(left_layout)
         splitter.addWidget(left_frame)
 
-        # right pane: history + PDF download
         right_frame = QFrame()
         right_layout = QVBoxLayout()
         right_layout.addWidget(QLabel('<b>History (last uploads)</b>'))
@@ -155,11 +144,10 @@ class MainWindow(QWidget):
 
         self.setLayout(root)
 
-        # initialize UI state
-        self._update_auth_ui()
-        self.fetch_history()  # attempt to load history if token exists
 
-    # --- Auth helpers ---
+        self._update_auth_ui()
+        self.fetch_history()  
+
     def _update_auth_ui(self):
         if self.token:
             self.log_msg('Authenticated (token present).')
@@ -186,7 +174,6 @@ class MainWindow(QWidget):
             QMessageBox.warning(self, 'Login', 'Enter username and password')
             return
         try:
-            # Backend accepts form-encoded (we used that in terminal). Try form first.
             url = API_BASE + 'auth/api-token-auth/'
             self.log_msg(f'POST {url} (form)')
             res = requests.post(url, data={'username': user, 'password': pwd}, timeout=REQUEST_TIMEOUT)
@@ -200,7 +187,6 @@ class MainWindow(QWidget):
                     self._update_auth_ui()
                     self.fetch_history()
                     return
-            # fallback: try JSON
             self.log_msg('Form login did not return token; trying JSON payload.')
             res2 = requests.post(url, json={'username': user, 'password': pwd}, timeout=REQUEST_TIMEOUT)
             j = safe_json(res2) or {}
@@ -226,7 +212,6 @@ class MainWindow(QWidget):
         try:
             url = API_BASE + 'register/'
             self.log_msg(f'POST {url} (form)')
-            # try form first (many simple backends use form)
             res = requests.post(url, data={'username': user, 'password': pwd}, timeout=REQUEST_TIMEOUT)
             j = safe_json(res) or {}
             token = j.get('token') or j.get('auth_token') or j.get('key')
@@ -237,7 +222,6 @@ class MainWindow(QWidget):
                 self._update_auth_ui()
                 self.fetch_history()
                 return
-            # fallback to JSON
             res2 = requests.post(url, json={'username': user, 'password': pwd}, timeout=REQUEST_TIMEOUT)
             j2 = safe_json(res2) or {}
             token2 = j2.get('token') or j2.get('auth_token') or j2.get('key')
@@ -264,7 +248,6 @@ class MainWindow(QWidget):
         self._update_auth_ui()
         self.log_msg('Logged out (token cleared).')
 
-    # === File selection + upload ===
     def choose(self):
         path, _ = QFileDialog.getOpenFileName(self, 'Open CSV', filter='CSV Files (*.csv)')
         if path:
@@ -285,14 +268,11 @@ class MainWindow(QWidget):
             self.log_msg(f'Uploading {self.filepath} -> {url}')
             with open(self.filepath, 'rb') as fh:
                 files = {'file': (os.path.basename(self.filepath), fh, 'text/csv')}
-                # name field is required by backend; pass the filename
                 resp = requests.post(url, files=files, data={'name': os.path.basename(self.filepath)}, headers=headers, timeout=REQUEST_TIMEOUT)
             if resp.status_code in (200, 201):
                 j = safe_json(resp) or {}
-                # backend returns summary and id typically
                 summary = j.get('summary') or j.get('summary_json') or j.get('summary_json', {})
                 self.log_msg('Upload OK. Server returned summary.')
-                # show summary text
                 try:
                     pretty = json.dumps(summary, indent=2)
                     self.summary_text.setPlainText(f"Total rows: {summary.get('total', 'N/A')}\nAverages: {pretty}")
@@ -301,7 +281,6 @@ class MainWindow(QWidget):
                 # plot
                 if summary:
                     self.plot_summary(summary)
-                # refresh history
                 self.fetch_history()
             else:
                 self.log_msg('Upload failed: ' + resp.text[:1000])
@@ -310,7 +289,6 @@ class MainWindow(QWidget):
             self.log_msg('Upload exception: ' + str(e))
             QMessageBox.critical(self, 'Upload error', str(e))
 
-    # === History ===
     def fetch_history(self):
         if not self.token:
             self.log_msg('Skipping history fetch: not authenticated.')
@@ -361,12 +339,12 @@ class MainWindow(QWidget):
         if not record:
             return
         self.log_msg(f'Loading history item id={record.get("id")}')
-        # backend gives csv_url or we may fetch summary. Prefer CSV file download URL if available.
+ 
         csv_url = record.get('csv_url') or record.get('file') or None
         headers = {'Authorization': f'Token {self.token}'} if self.token else {}
         try:
             if csv_url:
-                # csv_url may be a relative path like /media/uploads/xxx.csv -> build absolute URL
+              
                 if csv_url.startswith('/'):
                     csv_url_full = csv_url if csv_url.startswith('http') else API_BASE.rstrip('/') + csv_url
                 else:
@@ -380,20 +358,20 @@ class MainWindow(QWidget):
                     self.log_msg('CSV download failed, trying server summary endpoint...')
                     self._load_from_summary(record)
             else:
-                # fallback: server may provide id-only endpoints for CSV content
+                
                 self._load_from_summary(record)
         except Exception as e:
             self.log_msg('Load history exception: ' + str(e))
             self._load_from_summary(record)
 
     def _load_from_summary(self, record):
-        # Attempt to get summary and maybe download CSV via an endpoint (if API supports). We'll use the summary to plot.
+
         try:
             pid = record.get('id')
             if pid is None:
                 self.log_msg('No id for record')
                 return
-            url = API_BASE + f'summary/{pid}/'  # some APIs might have this; it's optional
+            url = API_BASE + f'summary/{pid}/' 
             headers = {'Authorization': f'Token {self.token}'} if self.token else {}
             self.log_msg(f'Trying {url}')
             r = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
@@ -407,10 +385,9 @@ class MainWindow(QWidget):
         except Exception as e:
             self.log_msg('Summary fetch exception: ' + str(e))
 
-    # === Plotting ===
+
     def plot_summary(self, summary):
-        # summary expected shape:
-        # { "total":N, "averages": {"Flowrate":.., ...}, "type_distribution": {"Pump":3,...} }
+
         if not summary:
             self.log_msg('No summary to plot.')
             return
@@ -422,7 +399,6 @@ class MainWindow(QWidget):
             type_dist = summary.get('type_distribution') or summary.get('typeDistribution') or {}
             avgs = summary.get('averages') or summary.get('avg') or {}
 
-            # Pie chart for type distribution
             if isinstance(type_dist, dict) and len(type_dist) > 0:
                 labels = list(type_dist.keys())
                 sizes = list(type_dist.values())
@@ -432,7 +408,6 @@ class MainWindow(QWidget):
                 ax1.text(0.5, 0.5, 'No type distribution', ha='center', va='center')
                 ax1.set_axis_off()
 
-            # Bar chart for averages
             if isinstance(avgs, dict) and len(avgs) > 0:
                 labels = list(avgs.keys())
                 vals = [float(avgs[k]) for k in labels]
@@ -497,7 +472,7 @@ class MainWindow(QWidget):
             QMessageBox.critical(self, 'PDF error', str(e))
 
     def download_pdf(self):
-        # convenience - download most recent if available
+  
         if not self.history:
             QMessageBox.information(self, 'PDF', 'No history available.')
             return
@@ -505,7 +480,7 @@ class MainWindow(QWidget):
         self.download_pdf_for_record(record)
 
     def download_pdf_for_record(self, record):
-        # helper if user wants to pass a record
+  
         pid = record.get('id')
         if not pid:
             self.log_msg('Record missing id for PDF download.')
@@ -528,15 +503,11 @@ class MainWindow(QWidget):
         except Exception as e:
             self.log_msg('PDF exception: ' + str(e))
             QMessageBox.critical(self, 'PDF error', str(e))
-
-
-# === Run ===
 def main():
     app = QApplication(sys.argv)
     w = MainWindow()
     w.show()
     sys.exit(app.exec_())
-
 
 if __name__ == '__main__':
     main()

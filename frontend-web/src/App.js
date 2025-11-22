@@ -1,9 +1,7 @@
-// src/App.js
 import React, { useContext, useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import api from "./api";
 import "./App.css";
-
 import {
   Chart as ChartJS,
   ArcElement,
@@ -12,11 +10,93 @@ import {
   BarElement,
   Tooltip,
   Legend,
+  Title,
 } from "chart.js";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 import { Pie, Bar } from "react-chartjs-2";
+ChartJS.register(
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend,
+  Title,
+  ChartDataLabels
+);
+function generateColors(n) {
+  const palette = [
+    "#4e79a7",
+    "#f28e2b",
+    "#e15759",
+    "#76b7b2",
+    "#59a14f",
+    "#edc949",
+    "#af7aa1",
+    "#ff9da7",
+    "#9c755f",
+    "#bab0ac",
+  ];
+  const colors = [];
+  for (let i = 0; i < n; i++) colors.push(palette[i % palette.length]);
+  return colors;
+}
+const pieOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "right",
+      labels: {
+        boxWidth: 12,
+        padding: 12,
+        usePointStyle: true,
+        pointStyle: "circle",
+        font: { size: 12 },
+      },
+    },
+    datalabels: {
+      color: "#222",
+      anchor: "end",
+      align: "start",
+      offset: 8,
+      clamp: true,
+      font: { weight: "600", size: 11 },
+      formatter: (value, ctx) => {
+        const data = ctx.chart.data.datasets[0].data || [];
+        const total = data.reduce((a, b) => a + b, 0);
+        const pct = total ? ((value / total) * 100).toFixed(0) + "%" : "";
+        return pct;
+      },
+    },
+    title: { display: false },
+    tooltip: { callbacks: {} },
+  },
+  layout: { padding: { left: 6, right: 6, top: 6, bottom: 6 } },
+};
 
-ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend);
-
+const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    title: { display: false },
+    datalabels: {
+      display: true,
+      anchor: "end",
+      align: "end",
+      formatter: (val) => {
+        if (typeof val === "number") return val.toFixed(2);
+        return val;
+      },
+      font: { size: 11 },
+    },
+  },
+  scales: {
+    x: { ticks: { maxRotation: 0, minRotation: 0 } },
+    y: { beginAtZero: true },
+  },
+};
 function LoginRegister() {
   const { login, register } = useContext(AuthContext);
   const [isRegister, setIsRegister] = useState(false);
@@ -75,7 +155,6 @@ function LoginRegister() {
     </div>
   );
 }
-
 function UploadAndView() {
   const [file, setFile] = useState(null);
   const [summary, setSummary] = useState(null);
@@ -86,7 +165,6 @@ function UploadAndView() {
   const fetchHistory = async () => {
     try {
       const r = await api.get("/history/");
-      // r.data could be array or single object; tests returned object style via Invoke-RestMethod -> normalize
       const data = Array.isArray(r.data) ? r.data : [r.data].filter(Boolean);
       setHistory(data);
     } catch (err) {
@@ -109,10 +187,7 @@ function UploadAndView() {
       const res = await api.post("/upload/", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      // res.data has id & summary
       setSummary(res.data.summary || null);
-      // fetch table data by downloading CSV (convenience)
-      // server provides csv_url in history; we'll fetch and parse in frontend if needed
       await fetchHistory();
       setLoading(false);
     } catch (err) {
@@ -122,7 +197,6 @@ function UploadAndView() {
   };
 
   const loadCsvToTable = async (csvUrl) => {
-    // csvUrl may be a relative path like /media/uploads/sample.csv
     const base = process.env.REACT_APP_API_BASE || "http://127.0.0.1:8000";
     try {
       const r = await fetch(base + csvUrl);
@@ -165,30 +239,50 @@ function UploadAndView() {
       alert("Download failed: " + err.message);
     }
   };
+  const pieData = summary
+    ? {
+        labels: Object.keys(summary.type_distribution || {}),
+        datasets: [
+          {
+            data: Object.values(summary.type_distribution || {}),
+            label: "Type distribution",
+            backgroundColor: generateColors(
+              Object.keys(summary.type_distribution || {}).length
+            ),
+            borderColor: "#ffffff",
+            borderWidth: 1,
+          },
+        ],
+      }
+    : null;
 
-  // Charts data builders
-  const pieData = summary ? {
-    labels: Object.keys(summary.type_distribution || {}),
-    datasets: [{
-      data: Object.values(summary.type_distribution || {}),
-      label: "Type distribution",
-    }]
-  } : null;
-
-  const barData = summary ? {
-    labels: Object.keys(summary.averages || {}),
-    datasets: [{
-      label: "Averages",
-      data: Object.values(summary.averages || {}),
-    }]
-  } : null;
+  const barData = summary
+    ? {
+        labels: Object.keys(summary.averages || {}),
+        datasets: [
+          {
+            label: "Averages",
+            data: Object.values(summary.averages || {}),
+            backgroundColor: generateColors(
+              Object.keys(summary.averages || {}).length
+            ),
+          },
+        ],
+      }
+    : null;
 
   return (
     <div className="app-body">
       <div className="panel upload-panel">
         <h3>Upload CSV</h3>
-        <input type="file" accept=".csv" onChange={(e) => setFile(e.target.files[0])} />
-        <button onClick={onUpload} disabled={loading}>{loading ? "Uploading..." : "Upload"}</button>
+        <input
+          type="file"
+          accept=".csv"
+          onChange={(e) => setFile(e.target.files[0])}
+        />
+        <button onClick={onUpload} disabled={loading}>
+          {loading ? "Uploading..." : "Upload"}
+        </button>
       </div>
 
       <div className="panel history-panel">
@@ -197,10 +291,16 @@ function UploadAndView() {
         {history.map((h) => (
           <div key={h.id} className="history-item">
             <div>
-              <strong>{h.name}</strong> <small>({new Date(h.uploaded_at).toLocaleString()})</small>
+              <strong>{h.name}</strong>{" "}
+              <small>({new Date(h.uploaded_at).toLocaleString()})</small>
             </div>
             <div className="history-actions">
-              <button onClick={() => { if (h.csv_url) loadCsvToTable(h.csv_url); else alert("CSV URL missing"); }}>
+              <button
+                onClick={() => {
+                  if (h.csv_url) loadCsvToTable(h.csv_url);
+                  else alert("CSV URL missing");
+                }}
+              >
                 Load CSV table
               </button>
               <button onClick={() => downloadPdf(h.id)}>Download PDF</button>
@@ -215,20 +315,35 @@ function UploadAndView() {
           <>
             <div className="summary-card">
               <div>Total rows: {summary.total}</div>
-              <div>Averages:
-                <pre className="small-pre">{JSON.stringify(summary.averages, null, 2)}</pre>
+              <div>
+                Averages:
+                <pre className="small-pre">
+                  {JSON.stringify(summary.averages, null, 2)}
+                </pre>
               </div>
             </div>
 
             <div className="charts-row">
               <div className="chart-card">
                 <h4>Type distribution</h4>
-                {pieData ? <Pie data={pieData} /> : <div>No chart data</div>}
+                <div className="chart-container">
+                  {pieData ? (
+                    <Pie data={pieData} options={pieOptions} />
+                  ) : (
+                    <div>No chart data</div>
+                  )}
+                </div>
               </div>
 
               <div className="chart-card">
                 <h4>Averages</h4>
-                {barData ? <Bar data={barData} /> : <div>No chart data</div>}
+                <div className="chart-container">
+                  {barData ? (
+                    <Bar data={barData} options={barOptions} />
+                  ) : (
+                    <div>No chart data</div>
+                  )}
+                </div>
               </div>
             </div>
           </>
@@ -239,18 +354,24 @@ function UploadAndView() {
 
       <div className="panel table-panel">
         <h3>CSV Table</h3>
-        {tableRows.length === 0 ? <div>No CSV loaded</div> : (
+        {tableRows.length === 0 ? (
+          <div>No CSV loaded</div>
+        ) : (
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  {Object.keys(tableRows[0]).map(h => <th key={h}>{h}</th>)}
+                  {Object.keys(tableRows[0]).map((h) => (
+                    <th key={h}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {tableRows.map((r, idx) => (
                   <tr key={idx}>
-                    {Object.keys(r).map(k => <td key={k}>{r[k]}</td>)}
+                    {Object.keys(r).map((k) => (
+                      <td key={k}>{r[k]}</td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -276,12 +397,13 @@ export default function App() {
         ) : null}
       </header>
 
-      <main>
-        {!token ? <LoginRegister /> : <UploadAndView />}
-      </main>
+      <main>{!token ? <LoginRegister /> : <UploadAndView />}</main>
 
       <footer className="app-footer">
-        <small>Frontend demo — Dev use only. Set REACT_APP_API_BASE if backend on different host.</small>
+        <small>
+          Frontend demo — Dev use only. Set REACT_APP_API_BASE if backend on
+          different host.
+        </small>
       </footer>
     </div>
   );

@@ -15,7 +15,7 @@ from django.core.files.base import ContentFile
 REQUIRED_COLUMNS = ['Equipment Name','Type','Flowrate','Pressure','Temperature']
 
 def compute_summary(df):
-    # Basic summary: total count, averages for numeric cols, distribution by Type
+
     total = len(df)
     numeric = df.select_dtypes(include='number')
     averages = numeric.mean().to_dict()
@@ -23,13 +23,13 @@ def compute_summary(df):
     return {'total': total, 'averages': averages, 'type_distribution': type_dist}
 
 def cleanup_old_files():
-    # Keep only last 5 UploadedDataset records, delete older ones and their files from disk
+
     qs = UploadedDataset.objects.all().order_by('-uploaded_at')
     keep = list(qs[:5])
     remove = qs[5:]
     for inst in remove:
         try:
-            # delete file from storage
+           
             path = inst.csv_file.path
             if os.path.exists(path):
                 os.remove(path)
@@ -46,39 +46,39 @@ def upload_csv(request):
     name = request.data.get('name') or (getattr(file, 'name', 'dataset') if file is not None else 'dataset')
     if not file:
         return JsonResponse({'error':'No file uploaded'}, status=400)
-    # Check file size
+
     max_size = getattr(settings, 'MAX_UPLOAD_SIZE', 5*1024*1024)
     if file.size > max_size:
         return JsonResponse({'error': f'File too large. Max allowed size is {max_size} bytes.'}, status=400)
-    # Validate that it's a CSV by extension and simple sniff
+   
     if not name.lower().endswith('.csv'):
         return JsonResponse({'error':'Only CSV files are allowed (filename must end with .csv).'}, status=400)
     try:
-        # Read a small portion to validate columns without saving first
+     
         file.seek(0)
         df = pd.read_csv(file)
     except Exception as e:
         return JsonResponse({'error': 'Failed to parse CSV: ' + str(e)}, status=400)
-    # Validate required columns
+   
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
         return JsonResponse({'error': f'Missing required columns: {missing}'}, status=400)
-    # Ensure numeric columns can be coerced to numeric (Flowrate, Pressure, Temperature)
+    
     for col in ['Flowrate','Pressure','Temperature']:
         df[col] = pd.to_numeric(df[col], errors='coerce')
         if df[col].isna().all():
             return JsonResponse({'error': f'Column {col} must contain numeric values.'}, status=400)
-    # Save model instance (use ContentFile to ensure Django saves uploaded file properly)
+   
     file.seek(0)
     instance = UploadedDataset.objects.create(name=name)
     instance.csv_file.save(name, ContentFile(file.read()))
-    # parse CSV from saved file to ensure consistent path
+   
     path = instance.csv_file.path
     df = pd.read_csv(path)
     summary = compute_summary(df)
     instance.summary_json = summary
     instance.save()
-    # cleanup older files (keep last 5)
+   
     cleanup_old_files()
     return JsonResponse({'id': instance.id, 'summary': summary})
 
@@ -102,11 +102,11 @@ def get_summary(request, pk):
 @permission_classes([IsAuthenticated])
 def generate_pdf(request, pk):
     inst = get_object_or_404(UploadedDataset, pk=pk)
-    # create PDF in memory
+  
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     p.setFont('Helvetica', 12)
-    # Improved PDF layout
+    
     p.setFont('Helvetica-Bold', 14)
     p.drawString(30,750, f"Report for: {inst.name}")
     p.setFont('Helvetica', 11)
@@ -120,7 +120,7 @@ def generate_pdf(request, pk):
     if totals is not None:
         p.drawString(40,y, f"Total rows: {totals}")
         y -= 14
-    # Draw averages as a neat two-column list
+  
     avgs = summary.get('averages', {})
     if avgs:
         p.drawString(40,y, 'Averages:')
@@ -131,7 +131,7 @@ def generate_pdf(request, pk):
             y -= 14
             if y < 100:
                 p.showPage(); p.setFont('Helvetica',11); y = 750
-    # Type distribution
+   
     td = summary.get('type_distribution', {})
     if td:
         p.drawString(40,y, 'Type distribution:')

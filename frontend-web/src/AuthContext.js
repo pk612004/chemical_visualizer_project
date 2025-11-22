@@ -1,4 +1,4 @@
-// src/AuthContext.js
+
 import React, { createContext, useEffect, useState } from "react";
 import api from "./api";
 
@@ -19,7 +19,6 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   const login = async (username, password) => {
-    // backend expects form-encoded
     const params = new URLSearchParams();
     params.append("username", username);
     params.append("password", password);

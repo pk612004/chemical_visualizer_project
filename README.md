@@ -1,112 +1,76 @@
-Chemical Equipment Parameter Visualizer (Hybrid Web + Desktop App)
+# Chemical Equipment Parameter Visualizer (Hybrid Web + Desktop App)
 
-A hybrid Web + Desktop application for uploading, analyzing, and visualizing chemical equipment data.
-Powered by a Django REST API backend, a React.js web frontend, and a PyQt5 desktop client, all communicating through a single shared API.
- Features Overview
- Backend – Django + DRF
-CSV upload (equipment details)
-Data parsing using Pandas
-Summary analytics:
-Total equipment count
-Average Flowrate / Pressure / Temperature
-Equipment Type Distribution
-Stores last 5 uploaded datasets
-PDF report generation
-Token-based authentication (DRF TokenAuth)
-CORS enabled for frontend access
+This is a **starter** complete project for the FOSSEE Winter Internship screening task: a hybrid application (Web + Desktop) backed by a Django REST API. It includes starter code for backend, React web frontend, and PyQt5 desktop client. Use this repo as a solid and well-documented foundation to finish, polish, and demo for the internship.
 
-Web Frontend – React + Chart.js
+## What is included
+- `backend/` — Django project with Django REST Framework endpoints:
+  - Upload CSV (stores file + computes summary)
+  - List last 5 uploads with summaries
+  - Retrieve single upload summary
+  - Generate simple PDF report (endpoint)
+- `frontend-web/` — React skeleton that uploads CSV, shows table and Chart.js chart
+- `frontend-desktop/` — PyQt5 app that uploads CSV and displays Matplotlib charts
+- `sample_equipment_data.csv` — sample data for demo
+- `demo_instructions.txt` — how to run locally
+- `chemical_visualizer_project.zip` — this archive (you are currently viewing files inside)
 
-User Login & Signup
 
-Upload CSV file to backend
-
-Render data table
-
-Generate interactive charts (Bar & Pie)
-
-View summary + previous uploads history
-
-Download PDF report
-Desktop App – PyQt5 + Matplotlib
-
-Login & Signup UI
-
-CSV upload functionality
-
-Data table visualization
-
-Matplotlib charts
-
-Summary + history views
-
-PDF generation support
-
-Project Structure
-chemical_visualizer_project/
-│
-├── backend/                 # Django REST API
-│   ├── api/
-│   ├── backend/settings.py
-│   ├── requirements.txt
-│   └── ...
-│
-├── frontend-web/            # React Web App
-│   ├── src/
-│   └── package.json
-│
-├── frontend-desktop/        # PyQt5 Desktop App
-│   ├── app.py
-│   ├── ui/
-│   └── requirements.txt
-│
-├── sample_equipment_data.csv
-└── README.md
-Installation & Running Locally
-Backend (Django REST API)
+## Quick run (development)
+### Backend (Django)
+```bash
 cd backend
 python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
-source .venv/bin/activate
-
+source .venv/bin/activate    # on Windows use `.venv\Scripts\activate`
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py runserver
-Web Frontend (React.js)
+python manage.py runserver 8000
+```
+API root: http://127.0.0.1:8000/api/
+
+### Web Frontend (React)
+```bash
 cd frontend-web
 npm install
 npm start
-Desktop Client (PyQt5)
+# open http://localhost:3000
+```
+### Desktop Frontend (PyQt5)
+```bash
 cd frontend-desktop
 python -m venv .venv
-
-# Windows
-.venv\Scripts\activate
-# macOS/Linux
 source .venv/bin/activate
-
 pip install -r requirements.txt
 python app.py
-Authentication Guide
+```
+## Backend authentication
+To call the API endpoints you must create a user and obtain a token (DRF TokenAuth).
+Create a user: `python manage.py createsuperuser` then obtain token by POSTing to `/api/auth/token/login/` or use DRF authtoken endpoint.
 
-Both frontends require token-based authentication.
+## Authentication & token retrieval (required)
+This hardened project requires DRF Token Authentication for API calls. Steps:
+1. Create a user (recommended: superuser) for testing:
+   ```bash
+   cd backend
+   python manage.py createsuperuser
+   ```
+2. Obtain a token by POSTing credentials to the token endpoint:
+   - **Endpoint:** `POST http://127.0.0.1:8000/api/auth/api-token-auth/`
+   - **Body (JSON):** `{"username": "youruser", "password": "yourpass"}`
+   - **Response:** `{"token": "<your-token>"}`
+3. The React frontend shows a login screen. Enter username/password to obtain and store the token locally.
+4. The PyQt5 desktop app includes a login row — enter credentials to fetch the token before uploading files.
 
-1. Signup (API)
-2. POST /api/register/
-{
-  "username": "user",
-  "password": "pass"
-}
-Login (Get Token)
-POST /api/auth/api-token-auth/
-{
-  "username": "user",
-  "password": "pass"
-}
-Response:
-{ "token": "<your-token>" }
-Send token with every API request:
-Authorization: Token <your-token>
+Notes:
+- When running frontend and backend on different hosts/ports, you may need to enable CORS in Django (install `django-cors-headers`) and allow `http://localhost:3000`.
+
+
+## CORS & Running React dev server
+If you run the React dev server on http://localhost:3000 it will be allowed by default in this project. If you change origin, update `CORS_ALLOWED_ORIGINS` in `backend/backend/settings.py` or set `CORS_ALLOW_ALL_ORIGINS = True` for quick testing (not recommended for production).
+
+## API Registration (signup)
+You can create a user via the API using the `/api/register/` endpoint. It returns a token which both frontends use automatically.
+
+- Signup endpoint: `POST http://127.0.0.1:8000/api/register/` with JSON `{ "username": "user", "password": "pass" }`
+- Login endpoint: `POST http://127.0.0.1:8000/api/auth/api-token-auth/` with JSON `{ "username": "user", "password": "pass" }` returns `{"token":"..."}`
+
+The React UI provides signup and login flows. The desktop app also allows signup/login.

@@ -1,92 +1,72 @@
 Chemical Equipment Parameter Visualizer (Hybrid Web + Desktop App)
 
-A hybrid Web + Desktop application for visualizing and analyzing chemical equipment parameters.
-The system is powered by a Django REST API backend, a React.js web frontend, and a PyQt5 desktop client, all consuming the same API.
-
- Features
-Backend (Django + DRF)
-
-Upload CSV files containing:
-
-Equipment Name
-
-Type
-
-Flowrate
-
-Pressure
-
-Temperature
-
-Parse data using Pandas
-
-Compute:
-
+A hybrid Web + Desktop application for uploading, analyzing, and visualizing chemical equipment data.
+Powered by a Django REST API backend, a React.js web frontend, and a PyQt5 desktop client, all communicating through a single shared API.
+ Features Overview
+ Backend – Django + DRF
+CSV upload (equipment details)
+Data parsing using Pandas
+Summary analytics:
 Total equipment count
-
-Average flowrate, pressure, temperature
-
-Equipment type distribution
-
-Store last 5 uploaded datasets in SQLite
-
-Provide summary APIs for frontend and desktop
-
-Generate downloadable PDF reports
-
+Average Flowrate / Pressure / Temperature
+Equipment Type Distribution
+Stores last 5 uploaded datasets
+PDF report generation
 Token-based authentication (DRF TokenAuth)
+CORS enabled for frontend access
 
-CORS-enabled for web usage
+Web Frontend – React + Chart.js
 
- Web Frontend (React + Chart.js)
+User Login & Signup
 
-CSV upload form
+Upload CSV file to backend
 
-Displays parsed table
+Render data table
 
-Auto-generated charts (bar/pie) with Chart.js
+Generate interactive charts (Bar & Pie)
 
-Login & Signup (token stored locally)
+View summary + previous uploads history
 
-View summary and history of last 5 uploads
+Download PDF report
+Desktop App – PyQt5 + Matplotlib
 
- Desktop Frontend (PyQt5 + Matplotlib)
+Login & Signup UI
 
-Login & Signup
+CSV upload functionality
 
-Upload CSV directly to backend
+Data table visualization
 
-Display processed table
+Matplotlib charts
 
-Generate charts using Matplotlib
+Summary + history views
 
-See summaries and history
+PDF generation support
 
- Project Structure
+Project Structure
 chemical_visualizer_project/
 │
-├── backend/               # Django REST API
+├── backend/                 # Django REST API
 │   ├── api/
 │   ├── backend/settings.py
 │   ├── requirements.txt
 │   └── ...
 │
-├── frontend-web/          # React web app
+├── frontend-web/            # React Web App
 │   ├── src/
 │   └── package.json
 │
-├── frontend-desktop/      # PyQt5 desktop client
+├── frontend-desktop/        # PyQt5 Desktop App
 │   ├── app.py
 │   ├── ui/
 │   └── requirements.txt
 │
 ├── sample_equipment_data.csv
 └── README.md
-
-⚙️ Installation Instructions
-1️ Backend (Django REST API)
+Installation & Running Locally
+Backend (Django REST API)
 cd backend
 python -m venv .venv
+
 # Windows
 .venv\Scripts\activate
 # macOS/Linux
@@ -95,25 +75,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
-
-
-Backend runs at:
-
-➡ http://127.0.0.1:8000/api/
-
-2️ Web Frontend (React.js)
+Web Frontend (React.js)
 cd frontend-web
 npm install
 npm start
-
-
-Frontend runs at:
-
-➡ http://localhost:3000
-
-3️ Desktop Client (PyQt5)
+Desktop Client (PyQt5)
 cd frontend-desktop
 python -m venv .venv
+
 # Windows
 .venv\Scripts\activate
 # macOS/Linux
@@ -121,25 +90,23 @@ source .venv/bin/activate
 
 pip install -r requirements.txt
 python app.py
+Authentication Guide
 
- Authentication (Required for all clients)
-Signup (API)
-POST /api/register/
-{ "username": "user", "password": "pass" }
+Both frontends require token-based authentication.
 
-Login (API) – Get Token
+1. Signup (API)
+2. POST /api/register/
+{
+  "username": "user",
+  "password": "pass"
+}
+Login (Get Token)
 POST /api/auth/api-token-auth/
-{ "username": "user", "password": "pass" }
-
-
+{
+  "username": "user",
+  "password": "pass"
+}
 Response:
-
 { "token": "<your-token>" }
-
-
-Use this token in:
-
+Send token with every API request:
 Authorization: Token <your-token>
-
-
-Both web and desktop apps automatically store & reuse this token.

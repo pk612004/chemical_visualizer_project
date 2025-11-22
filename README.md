@@ -1,6 +1,11 @@
 # Chemical Equipment Parameter Visualizer (Hybrid Web + Desktop App)
 
 This is a **starter** complete project for the FOSSEE Winter Internship screening task: a hybrid application (Web + Desktop) backed by a Django REST API. It includes starter code for backend, React web frontend, and PyQt5 desktop client. Use this repo as a solid and well-documented foundation to finish, polish, and demo for the internship.
+##  Watch Demo Video
+
+[![Watch the video](https://img.youtube.com/vi/VQSaEJVS4Pk/0.jpg)](https://youtu.be/VQSaEJVS4Pk)
+
+> Click the thumbnail above to watch the demo on YouTube.
 
 ## What is included
 - `backend/` — Django project with Django REST Framework endpoints:
